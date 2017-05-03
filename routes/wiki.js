@@ -59,8 +59,7 @@ router.get('/:title', function(req, res, next){
     return page.getAuthor().then(function(user){
       res.render('wikipage', {page, user});
     })
-  }).catch(next)
-
+  }).catch(next);
 
 });
 router.get('/:title/similar', function(req, res, next){
@@ -70,11 +69,9 @@ router.get('/:title/similar', function(req, res, next){
     }
   })
   .then(function(page){
-    console.log(page)
    return page.findSimilar()
   })
   .then(function(pages){
-    console.log(pages)
     res.render('index', { pages })
   })
   .catch(next)

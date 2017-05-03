@@ -17,16 +17,22 @@ app.use(bodyParser.json());
 // templating boilerplate setup
 app.engine('html', nunjucks.render); // how to render html templates
 app.set('view engine', 'html'); // what file extension do our templates have
-nunjucks.configure('views', { noCache: true }); // where to find the views, caching off
+var env = nunjucks.configure('views', { noCache: true });
+
+var AutoEscapeExtension = require("nunjucks-autoescape")(nunjucks);
+env.addExtension('AutoEscapeExtension', new AutoEscapeExtension(env));
 
 
 app.use('/', routes);
 
+
+app.use('/', function(err, req, res, next){
+  res.status(404).send(err);
+});
+
+
 // 1. .sync is an asynchronous operation (it is interacting with the database) and returns a promise.
 // 2. this is for dev environments only; in production we will not be resetting our database frequently.
-app.use('/', function(err, req, res, next){
-  res.send(err);
-});
 
 
 // db.sybc({ force: true })  in order for Sequelize to drop previous tables created and create new ones with this updated structure. Keep in mind that dropping tables means the data in those tables will also be lost.
@@ -39,6 +45,8 @@ db.sync()
 .catch(function(err){
   throw err;
 });
+
+module.exports = app;
 
 
 

@@ -1,20 +1,52 @@
 var Sequelize = require('sequelize');
-var db = new Sequelize('postgres://localhost:5432/wikistack');
+var marked = require('marked');
+
+// the path for our db name wikistack
+// the port is sequlize port
+var db = new Sequelize('postgres://localhost:5432/wikistack', {logging: false, typeValidation: true});
 
 // Our schemas:
 // model defination for  Page and User
 const Page = db.define('page', {
-  title: {type: Sequelize.STRING, allowNull: false},
-  urlTitle: {type: Sequelize.STRING, allowNull: false},
-  content: {type: Sequelize.TEXT, allowNullL: false},
+  title: {
+    type: Sequelize.STRING,
+    allowNull: false
+  },   // end of first argument
+  urlTitle: {
+    type: Sequelize.STRING,
+    allowNull: false
+  },   // end of 2nd argument
+  content: {
+    type: Sequelize.TEXT,
+    allowNull: false
+  },
   // 	if the page is open or closed
-  status: {type: Sequelize.ENUM('open', 'close'), defaultValue: 'close'},
-  tags: Sequelize.ARRAY(Sequelize.STRING)
+  status: {
+    type: Sequelize.ENUM('open', 'close'),
+    validate: {
+      isIn: [['open', 'close']]
+    },
+    defaultValue: 'close',
+    typeValidation: true
+  },
+  tags: {
+    type: Sequelize.ARRAY(Sequelize.STRING),
+    validate: {
+      isArrayOfStrings: function(arr){
+        arr.forEach( value => {
+          if (typeof value !== 'string') throw new Error('Should be an Array of Strings')
+        })
+      }
+    }
+  }
 },
   {
     getterMethods: {
       route: function(){
         return `/wiki/${this.getDataValue('urlTitle')}`;
+      },
+      renderedContent: function() {
+        return marked(this.content)
       }
     },
     classMethods: {
@@ -52,9 +84,7 @@ const Page = db.define('page', {
 // expression to set
 Page.hook('beforeValidate', function(page){
 // Page.beforeBulkCreate(function(page){
-
   page.urlTitle = urlBuilder(page.title);
-
 });
 
 function urlBuilder(title){
