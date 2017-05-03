@@ -18,22 +18,22 @@ router.post('/', (req, res, next) =>{
       name: req.body.name,
       email: req.body.email
     }
-
   })
   .then(function(users){
     const newPage = Page.build({
       title: req.body.title,
       content: req.body.content,
-      tags: req.body.tags.split(', ')
-    })
+      tags: req.body.tags.split(', '),
+      status: req.body.status,
+    });
 
     return newPage.save()
            .then(function(newPage){
            return newPage.setAuthor(users[0]);
-     })
+     });
 
   })
-  .then (function(result){
+  .then(function(result){
     // Move to the current page we just saved
     res.redirect(result.route);
   })
